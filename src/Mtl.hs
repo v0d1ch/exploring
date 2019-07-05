@@ -1,10 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Mtl where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Except
+import Control.Monad.Reader hiding (ask)
 import qualified Control.Error as ER
 
 data SomeEnv =
@@ -21,22 +23,28 @@ checkIfStringIsValid :: String -> Either String String
 checkIfStringIsValid "valid" = Right "This string is valid"
 checkIfStringIsValid _       = Left "This string is NOT valid"
 
-functionA :: MonadIO m => Int -> ReaderT SomeEnv (ExceptT String m) (String, String)
-functionA i = do
+functionB :: MonadIO m => Int -> ReaderT SomeEnv (ExceptT String m) (String, String)
+functionB i = do
   SomeEnv {..} <- ask
   validInt <- lift $ ER.hoistEither $ checkIfIntIs8 i
   validString <- lift $ ER.hoistEither $ checkIfStringIsValid envB
   return (validInt, validString)
 
-functionB :: MonadIO m => ReaderT SomeEnv m (Either () (String,String))
-functionB = do
+functionA :: MonadIO m => ReaderT SomeEnv m (Either () (String,String))
+functionA = do
   env@SomeEnv {..} <- ask
-  result <- lift $ runExceptT $ runReaderT (functionA envA) env
+  result <- lift $ runExceptT $ runReaderT (functionB envA) env
   case result of
     Left err -> liftIO $ putStrLn err >> return (Left ())
     Right ok -> return (Right ok)
 
+functionA' :: (MonadIO m, MonadReader SomeEnv m, MonadError String m) => m (String,String)
+functionA' = undefined
+
+functionB' :: (MonadIO m, MonadReader SomeEnv m, MonadError String m) => m (String,String)
+functionB' = undefined
+
 main :: MonadIO m => m (Either () (String, String))
 main = do
  let env = SomeEnv 2 "test"
- runReaderT functionB  env
+ runReaderT functionA  env
