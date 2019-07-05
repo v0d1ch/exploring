@@ -21,6 +21,7 @@ library
   -- other-extensions:
   build-depends:       base ^>=4.11.1.0
                      , errors
+                     , exceptions
                      , transformers
                      , mtl
   hs-source-dirs:      src
