@@ -24,6 +24,10 @@ library
                      , exceptions
                      , transformers
                      , mtl
+					 , aeson
+					 , text
+					 , bytestring
+
   hs-source-dirs:      src
   ghc-options: -Wall
   default-language:    Haskell2010
