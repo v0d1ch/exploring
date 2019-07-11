@@ -26,7 +26,9 @@ library
                      , mtl
 					 , aeson
 					 , text
-					 , bytestring
+                     , bytestring
+                     , containers
+					 , recursion-schemes
 
   hs-source-dirs:      src
   ghc-options: -Wall

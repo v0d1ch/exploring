@@ -1,10 +1,13 @@
 {-# LANGUAGE DeriveFoldable     #-}
 {-# LANGUAGE DeriveFunctor      #-}
 {-# LANGUAGE DeriveTraversable  #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module RecursionSchemes2 where
 
 import Control.Arrow
+import Data.Functor.Foldable
 
 data Expr a
   = Literal { intVal :: Int }
@@ -35,3 +38,29 @@ mystery fn =
   out                  ---1) unpack the Term
   >>> fmap (mystery fn)---2) recursively apply `fn`
   >>> fn               ---3) apply `fn`
+----------------------------------------------------------------------------------------
+
+data ListF' a b = NilF | ConsF a b deriving (Show, Functor, Foldable, Traversable)
+
+type List a = Fix (ListF' a)
+
+listToListF' :: forall a . [a] -> List a
+listToListF' [] =  Fix NilF
+listToListF' (x:xs) =  Fix $ (ConsF x (listToListF' xs))
+
+listFToList :: forall a . List a -> [a]
+listFToList = cata alg
+
+alg :: ListF' a [a] -> [a]
+alg NilF = []
+alg (ConsF x acc) =  x : acc
+
+data X = X {_one :: Int, _two :: String } deriving Show
+
+xToList :: List X -> [Int]
+xToList = cata algX
+  where
+    algX NilF = []
+    algX (ConsF a as)
+     | _one a == 0 = 1000 : as
+     | otherwise = _one a : as
