@@ -3,11 +3,14 @@
 {-# LANGUAGE DeriveTraversable  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeFamilies       #-}
 
 module RecursionSchemes2 where
 
 import Control.Arrow
 import Data.Functor.Foldable
+import Data.Functor.Foldable.TH
 
 data Expr a
   = Literal { intVal :: Int }
@@ -39,28 +42,68 @@ mystery fn =
   >>> fmap (mystery fn)---2) recursively apply `fn`
   >>> fn               ---3) apply `fn`
 ----------------------------------------------------------------------------------------
+-- data ListF' a r =
+--     ConsF a r
+--   | NilF
+--   deriving (Show, Functor)
 
-data ListF' a b = NilF | ConsF a b deriving (Show, Functor, Foldable, Traversable)
+-- type List a = Fix (ListF' a)
 
-type List a = Fix (ListF' a)
+-- fromList :: [a] -> List a
+-- fromList = ana coalg . project where
+--   coalg Nil        = NilF
+--   coalg (Cons h t) = ConsF h t
 
-listToListF' :: forall a . [a] -> List a
-listToListF' [] =  Fix NilF
-listToListF' (x:xs) =  Fix $ (ConsF x (listToListF' xs))
+knockbackL :: Ord a => [a] -> [a]
+knockbackL = apo coalg . project where
+  coalg Nil        = Nil
+  coalg (Cons x l) = case project l of
+    Nil           -> Cons x (Left l)
+    Cons h t
+      | x <= h    -> Cons x (Left l)
+      | otherwise -> Cons h (Right (Cons x t))
 
-listFToList :: forall a . List a -> [a]
-listFToList = cata alg
+insertionSortL :: Ord a => [a] -> [a]
+insertionSortL = cata (knockbackL . embed)
 
-alg :: ListF' a [a] -> [a]
-alg NilF = []
-alg (ConsF x acc) =  x : acc
+-- listToListF' :: forall a . [a] -> List a
+-- listToListF' [] =  Fix NilF
+-- listToListF' (x:xs) =  Fix $ (ConsF x (listToListF' xs))
 
-data X = X {_one :: Int, _two :: String } deriving Show
+-- listFToList :: forall a . List a -> [a]
+-- listFToList = cata alg
 
-xToList :: List X -> [Int]
-xToList = cata algX
+-- alg :: ListF' a [a] -> [a]
+-- alg NilF = []
+-- alg (ConsF x acc) =  x : acc
+
+-- xToList :: List X -> [Int]
+-- xToList = cata algX
+--   where
+--     algX NilF = []
+--     algX (ConsF a as)
+--      | _one a == 0 = 1000 : as
+--      | otherwise = _one a : as
+
+data X = X { _one :: Int, _two :: Char } deriving Show
+
+xList :: [X]
+xList = [X 1 'a', X 2 'b', X 3 'c', X 4 'd', X 5 'e']
+
+defX :: X
+defX = X 0 'x'
+
+foldXList :: [X] -> X
+foldXList xl = foldl (\a b -> X (_one a + _one b) (_two b)) defX xl
+
+cataFold :: [X] -> X
+cataFold = embed $ cata alg
   where
-    algX NilF = []
-    algX (ConsF a as)
-     | _one a == 0 = 1000 : as
-     | otherwise = _one a : as
+    alg Nil = defX
+    alg (Cons x l) =
+        case project l of
+          Nil -> X (_one x + _one defX) (_two x)
+          (Cons x' l') ->  X (_one x' + _one x) (_two x')
+
+
+makeBaseFunctor ''X
