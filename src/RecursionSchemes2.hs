@@ -1,16 +1,18 @@
-{-# LANGUAGE DeriveFoldable     #-}
-{-# LANGUAGE DeriveFunctor      #-}
-{-# LANGUAGE DeriveTraversable  #-}
-{-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DeriveFoldable       #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveTraversable    #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module RecursionSchemes2 where
 
 import Control.Arrow
 import Data.Functor.Foldable
 import Data.Functor.Foldable.TH
+import Data.List (splitAt, unfoldr)
 
 data Expr a
   = Literal { intVal :: Int }
@@ -42,17 +44,16 @@ mystery fn =
   >>> fmap (mystery fn)---2) recursively apply `fn`
   >>> fn               ---3) apply `fn`
 ----------------------------------------------------------------------------------------
--- data ListF' a r =
---     ConsF a r
---   | NilF
---   deriving (Show, Functor)
 
--- type List a = Fix (ListF' a)
+data ListF' a r =
+    ConsF a r
+  | NilF
+  deriving (Show, Functor)
 
--- fromList :: [a] -> List a
--- fromList = ana coalg . project where
---   coalg Nil        = NilF
---   coalg (Cons h t) = ConsF h t
+-- fromList :: [a] -> ListF' a a
+-- fromList = ana coalg where
+--   coalg []    = NilF
+--   coalg (h:t) = ConsF h t
 
 knockbackL :: Ord a => [a] -> [a]
 knockbackL = apo coalg . project where
@@ -87,23 +88,62 @@ insertionSortL = cata (knockbackL . embed)
 
 data X = X { _one :: Int, _two :: Char } deriving Show
 
-xList :: [X]
-xList = [X 1 'a', X 2 'b', X 3 'c', X 4 'd', X 5 'e']
-
-defX :: X
-defX = X 0 'x'
-
-foldXList :: [X] -> X
-foldXList xl = foldl (\a b -> X (_one a + _one b) (_two b)) defX xl
-
-cataFold :: [X] -> X
-cataFold = embed $ cata alg
-  where
-    alg Nil = defX
-    alg (Cons x l) =
-        case project l of
-          Nil -> X (_one x + _one defX) (_two x)
-          (Cons x' l') ->  X (_one x' + _one x) (_two x')
-
-
 makeBaseFunctor ''X
+-- xList :: [X]
+-- xList = [X 1 'a', X 2 'b', X 3 'c', X 4 'd', X 5 'e']
+
+-- defX :: X
+-- defX = X 0 'x'
+
+-- foldXList :: [X] -> X
+-- foldXList xl = foldl (\a b -> X (_one a + _one b) (_two b)) defX xl
+
+-- cataFold :: [X] -> X
+-- cataFold = embed $ cata alg
+--   where
+--     alg Nil = defX
+--     alg (Cons x l) =
+--         case project l of
+--           Nil -> X (_one x + _one defX) (_two x)
+--           (Cons x' l') ->  X (_one x' + _one x) (_two x')
+
+
+
+-----------------------------------------
+-- fix :: (a -> a) -> a
+-- fix f = f (fix f)
+
+-- fac :: (Integer -> Integer) -> Integer -> Integer
+-- fac self n = if n == 0 then 1 else n * self (n - 1)
+
+-- fac_proto :: Integer -> Integer
+-- fac_proto = fix fac
+--------------------------------------------
+
+data TreeF c f = EmptyF | LeafF c | NodeF f f
+  deriving (Functor)
+
+deriving instance (Show a, Show b) => Show (TreeF a b)
+deriving instance (Eq a, Eq b) => Eq (TreeF a b)
+
+makeBaseFunctor ''TreeF
+
+unflatten :: [a] -> TreeF a [a]
+unflatten (  []) = EmptyF
+unflatten (x:[]) = LeafF x
+unflatten (  xs) = NodeF l r
+  where (l,r) = splitAt (length xs `div` 2) xs
+
+flatten :: Ord a => TreeF a [a] -> [a]
+flatten EmptyF      = []
+flatten (LeafF c)   = [c]
+flatten (NodeF l r) = mergeLists l r
+
+mergeLists :: Ord a => [a] -> [a] -> [a]
+mergeLists = curry $ unfoldr c where
+  c ([], [])     = Nothing
+  c ([], y:ys)   = Just (y, ([], ys))
+  c (x:xs, [])   = Just (x, (xs, []))
+  c (x:xs, y:ys) | x <= y = Just (x, (xs, y:ys))
+                 | x > y  = Just (y, (x:xs, ys))
+  c ((_:_), (_:_))        = Nothing

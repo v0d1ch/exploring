@@ -44,6 +44,6 @@ data Process c where
 
 -- Task 1. Write a function run that runs a given process according to the semantics described above. Your run function may require that the given process uses a particular channel type.
 
-run :: Process [] -> Process []
+run :: Process [a] -> Process [a]
 run Stop = Stop
 run (Send chan val cont) = undefined --let x = chan <> val  in _a

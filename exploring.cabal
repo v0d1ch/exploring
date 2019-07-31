@@ -19,17 +19,20 @@ library
   -- exposed-modules:
   -- other-modules:
   -- other-extensions:
-  build-depends:       base ^>=4.11.1.0
+  build-depends:       base ^>=4.12
                      , errors
                      , exceptions
                      , transformers
                      , mtl
-					 , aeson
-					 , text
+                     , aeson
+                     , text
                      , bytestring
                      , containers
                      , recursion-schemes
                      , stm
+                     , deriving-compat
+                     , time
+                     , containers
 
   hs-source-dirs:      src
   ghc-options: -Wall
