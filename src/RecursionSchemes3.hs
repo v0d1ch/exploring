@@ -52,3 +52,17 @@ filterF filterBy = cata alg
     alg :: ListF a [a] -> [a]
     alg  Nil = []
     alg (Cons a as) = if filterBy a then a : as else as
+
+filterP :: forall a . Show a => (a -> Bool) -> [a] -> IO [a]
+filterP filterBy = cataA alg
+  where
+    alg :: Base [a] (IO [a]) -> IO [a]
+    alg  Nil = return []
+    alg (Cons a as) =
+      if filterBy a
+        then do
+          x <- as
+          print x
+          return $ a:x
+        else
+          as
