@@ -33,6 +33,8 @@ library
                      , deriving-compat
                      , time
                      , containers
+                     , comonad
+                     , megaparsec
 
   hs-source-dirs:      src
   ghc-options: -Wall

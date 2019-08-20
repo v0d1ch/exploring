@@ -24,8 +24,6 @@ data Test =
 
 makeBaseFunctor ''Test
 
--- data TestF r = TestF {testAF :: [Char], testBF :: Int}
-
 testL :: [Test]
 testL = [Test "a" 1, Test "b" 2, Test "c" 3, Test "d" 4, Test "e" 5, Test "c" 7]
 
@@ -72,5 +70,5 @@ anaT = ana coalg
   where
     coalg :: Int -> Base [Int] Int
     coalg n
-      | n >  10 = Nil
+      | n > 10 = Nil
       | otherwise = Cons n (n + 1)
