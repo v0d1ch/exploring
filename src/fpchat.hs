@@ -1,25 +1,16 @@
 module Fpchat where
 
-import Control.Monad
-import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Void
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
 type Parser = Parsec Void String
 
-f :: Parser Text
+f :: Parser [String]
 f = do
-  let d = '-'
-      h = '!'
-  first <- try $ char d <|> char h
-  dashes <- manyTill (char d) (char h)
+  dashes <- many (try (manyTill (char '-') (char '!')))
+  return $ filter (\a -> a /= "") (countDashes <$> dashes)
 
-  let lDashes = length dashes
-      n = lDashes + (if first == d then 1 else 0)
-      nDashes = lDashes + 1
-
-  return $ T.pack
-    (replicate nDashes d
-     ++ (if n == 0 then "-" else show n))
+countDashes :: String -> String
+countDashes str =
+  str ++ if length str > 0 then show (length str) else ""
