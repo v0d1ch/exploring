@@ -70,5 +70,5 @@ anaT = ana coalg
   where
     coalg :: Int -> Base [Int] Int
     coalg n
-      | n > 10 = Nil
-      | otherwise = Cons n (n + 1)
+      | n < 100 = Cons n (n + 1)
+      | otherwise = Nil
