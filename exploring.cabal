@@ -35,6 +35,7 @@ library
                      , containers
                      , comonad
                      , megaparsec
+					 , safe
 
   hs-source-dirs:      src
   ghc-options: -Wall
