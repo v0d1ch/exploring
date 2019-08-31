@@ -36,6 +36,7 @@ library
                      , comonad
                      , megaparsec
 					 , safe
+					 , free
 
   hs-source-dirs:      src
   ghc-options: -Wall

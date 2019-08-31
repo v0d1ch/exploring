@@ -7,6 +7,7 @@ module Comonadic where
 
 import Control.Comonad
 import Data.Functor.Foldable
+import Data.Functor.Identity
 import Control.Comonad.Store
 import qualified Data.List.NonEmpty as NE
 import Prelude
@@ -52,4 +53,4 @@ neToStore l =
 
 neToStore' :: NE.NonEmpty Int -> Store Int Int
 neToStore' (a NE.:| as) =
-  (store (\x -> a) a) <> neToStore' as
+  StoreT (Identity (\x -> x)) a
