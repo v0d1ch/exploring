@@ -1,6 +1,7 @@
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PartialTypeSignatures  #-}
 {-# LANGUAGE Rank2Types             #-}
@@ -27,16 +28,24 @@ import           Data.Coerce
 -- instance The (Full a b) b where
 
 newtype Named n a = Named { forgetName :: a } deriving Show
-
+type a ~~ name = Named name a
 name :: a -> ( forall name. Named name a -> r ) -> r
 name x f = f ( Named x )
 
 data IsPrime name = IsPrime deriving Show
 
-checkPrime :: Named name Int -> Maybe (IsPrime name)
+checkPrime :: Int ~~ name -> Maybe (IsPrime name)
 checkPrime named | isPrime (forgetName named) = Just IsPrime
                  | otherwise                  = Nothing
 
 isPrime :: Int -> Bool
-isPrime 1 = True 
+isPrime 1 = True
 isPrime _ = False
+
+data UserOwnsProject user project = TrustMe
+
+data UserBelongsToProjectOrganization userId projectId where
+  UserBelongsToProjectOrganization
+    :: { projectOrganizationId :: Named orgId Int
+       , organizationOwnsProject :: UserOwnsProject orgId projectId
+       } -> UserBelongsToProjectOrganization userId projectId
