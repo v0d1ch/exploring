@@ -1,14 +1,19 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
 module Has where
 
+import           Control.Monad.Reader
 import           Data.Has
-import           Data.Set  (Set)
-import qualified Data.Set  as S
-import           Data.Text (Text)
+import           Data.Set             (Set)
+import qualified Data.Set             as S
+import           Data.Text            (Text)
+import           HasTH
 import           Prelude
-import qualified Prelude   as P
+import qualified Prelude              as P
 
 data Scene = Scene
   { backgroundImage   :: Text
@@ -41,16 +46,10 @@ data WoodenCrate = WoodenCrate
   , woodenCrateImage :: DamageArray
   }
 
-collectImages :: Has Scene m => m -> Set Text
-collectImages a =
-  let Scene {..} = getter a
-  in
-    S.singleton backgroundImage
-    <> mconcat (P.map collectCharacterImages characters)
-    <> maybe mempty collectCharacterImages bewilderedTourist
-    <> mconcat (P.map (either (S.singleton . collectRockImage)
-                          collectWoodenCrateImages)
-                  objects)
+collectImages :: (Has DamageArray r, MonadIO m) => r -> m Text
+collectImages r = do
+  let x = getter r
+  return $ noDamage x
 
 -- collectCharacterImages :: Character -> Set Text
 -- collectCharacterImages = images
@@ -71,8 +70,8 @@ collectImages a =
 collectRockImage :: Rock -> Text
 collectRockImage Rock {..} = rockImage
 
-collectWoodenCrateImages :: Has WoodenCrate m => m -> Set Text
-collectWoodenCrateImages = getter
+-- collectWoodenCrateImages :: Has WoodenCrate m => m -> Set Text
+-- collectWoodenCrateImages = getter
   -- collectDamageArrayImages woodenCrateImage
 
 -- class HasImages a where
