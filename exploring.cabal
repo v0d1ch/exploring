@@ -39,6 +39,8 @@ library
                      , template-haskell
 					 , safe
 					 , free
+                     , lens
+                     , fused-effects
 
   hs-source-dirs:      src
   ghc-options: -Wall
