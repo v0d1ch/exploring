@@ -37,10 +37,12 @@ library
                      , megaparsec
                      , data-has
                      , template-haskell
-					 , safe
-					 , free
+                     , safe
+                     , free
                      , lens
                      , fused-effects
+                     , lens
+                     , lens-aeson
 
   hs-source-dirs:      src
   ghc-options: -Wall
