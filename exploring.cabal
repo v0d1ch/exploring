@@ -43,6 +43,7 @@ library
                      , fused-effects
                      , lens
                      , lens-aeson
+                     , logict
 
   hs-source-dirs:      src
   ghc-options: -Wall
