@@ -22,7 +22,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Monoid ((<>))
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (pack)
-import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
+import GHC.TypeLits
 
 data Payload (s :: Symbol) a :: * where
   Payload :: a -> Payload (TypeKey a) a
@@ -94,3 +94,17 @@ messageStringA = "{\"decodeToType\": \"revenueData\", \"data\": \"cool\"}"
 -- instance FromJSON (JsonMessage a) => FromJSON (Env a) where
 --   parseJSON (Object v) = Env <$> v .: "envelope"
 --   parseJSON _          = mzero
+
+reifySymbol :: SomeSymbol -> String
+reifySymbol (SomeSymbol y) = symbolVal y
+
+newtype Stringly (a :: SomeSymbol) =
+  Stringly
+    { unStringly :: SomeSymbol
+    } deriving (Eq, Show)
+
+mkStringly :: String -> Stringly a
+mkStringly str = Stringly (someSymbolVal str)
+
+compareStringly :: Stringly a -> Stringly b -> Bool
+compareStringly (Stringly (SomeSymbol a)) (Stringly (SomeSymbol b)) = symbolVal a == symbolVal b
