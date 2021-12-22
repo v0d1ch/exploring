@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE PolyKinds          #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -21,7 +22,7 @@ data DoorState
   | Locked
   deriving (Show, Eq)
 
-data Door :: DoorState -> Type where
+data Door  :: DoorState -> Type where
   UnsafeMkDoor :: { doorMaterial :: String } -> Door s
 
 deriving instance Show (Door a)
@@ -42,7 +43,7 @@ mkDoor Opened = UnsafeMkDoor
 mkDoor Closed = UnsafeMkDoor
 mkDoor Locked = UnsafeMkDoor
 
-withSingDSI :: SDoorState s -> (SingI s => r) -> r
+withSingDSI :: SingI s => SDoorState s -> r -> r
 withSingDSI sng x = case sng of
   SOpened -> x
   SClosed -> x

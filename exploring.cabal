@@ -46,6 +46,7 @@ library
                      , logict
                      , singletons
                      , http-client
+                     , rio
 
   hs-source-dirs:      src
   ghc-options: -Wall

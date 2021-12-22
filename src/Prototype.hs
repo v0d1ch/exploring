@@ -6,15 +6,8 @@
 
 module Prototype where
 
-import Control.Concurrent.STM (STM (..), TChan (..))
-
--- data Process c a =
---     Process
---     { stop :: Process c a
---     , send :: c a -> a -> Process c a -> Process c a
---     , receive :: c a -> (a -> Process c a) -> Process c a
---     , newChan :: (c a -> Process c a) -> Process c a
---     }
+import           Control.Concurrent.STM (STM (..), TChan (..), newTChan)
+import           Control.Monad.ST
 
 data Process c where
   Stop    :: Process c
@@ -42,8 +35,13 @@ data Process c where
 -- • NewChan cont creates a new channel chan and then continues as cont chan.
 -- • process1 :|: process2 performs process1 and process2 concurrently.
 
--- Task 1. Write a function run that runs a given process according to the semantics described above. Your run function may require that the given process uses a particular channel type.
+-- Task 1. Write a function run that runs a given process according to the semantics described above.
+-- Your run function may require that the given process uses a particular channel type.
 
-run :: Process [a] -> Process [a]
-run Stop = Stop
-run (Send chan val cont) = undefined --let x = chan <> val  in _a
+run :: Process a -> Process a
+run p =
+  case p of
+    Stop -> p
+    NewChan f -> f p
+
+-- run (Send chan val cont) = undefined --let x = chan <> val  in _a

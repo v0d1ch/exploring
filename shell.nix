@@ -1,4 +1,4 @@
-{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc883", withHoogle ? true }:
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "ghc884", withHoogle ? true }:
 let
   inherit (nixpkgs) pkgs;
   pinnedUnstable =
@@ -9,14 +9,15 @@ let
       sha256 = "1ak7jqx94fjhc68xh1lh35kh3w3ndbadprrb762qgvcfb8351x8v";
     };
   unstable = import pinnedUnstable {};
-  finalPackage = {mkDerivation, hpack, hlint, stack, stdenv}:
+  finalPackage = {mkDerivation, hpack, hlint, stack, stdenv, zlib}:
     mkDerivation {
       pname = "exploring";
       version = "0.0.1";
       src = ./.;
       isLibrary = true;
       isExecutable = true;
-      libraryToolDepends = [ hpack stack hlint ];
+      buildDepends = [zlib];
+      libraryToolDepends = [ hpack stack hlint zlib ];
       prePatch = "hpack";
       license = stdenv.lib.licenses.bsd3;
       shellHook = ''

@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+
 module Tonny where
 
 class Fluffy f where
@@ -6,17 +9,23 @@ class Fluffy f where
 -- Exercise 1
 -- Relative Difficulty: 1
 instance Fluffy [] where
-  furry = error "todo"
+  furry f l =
+    case l of
+      []     -> []
+      (a:as) -> f a : furry f as
 
 -- Exercise 2
 -- Relative Difficulty: 1
 instance Fluffy Maybe where
-  furry = error "todo"
+  furry f m =
+    case m of
+      Nothing -> Nothing
+      Just a  -> Just (f a)
 
 -- Exercise 3
 -- Relative Difficulty: 5
 instance Fluffy ((->) t) where
-  furry = error "todo"
+  furry f f' = (\a -> f (f' a))
 
 newtype EitherLeft b a = EitherLeft (Either a b)
 newtype EitherRight a b = EitherRight (Either a b)
@@ -24,12 +33,18 @@ newtype EitherRight a b = EitherRight (Either a b)
 -- Exercise 4
 -- Relative Difficulty: 5
 instance Fluffy (EitherLeft t) where
-  furry = error "todo"
+  furry f (EitherLeft e) =
+    case e of
+      Left a  -> EitherLeft (Left $ f a)
+      Right b -> EitherLeft (Right b)
 
 -- Exercise 5
 -- Relative Difficulty: 5
 instance Fluffy (EitherRight t) where
-  furry = error "todo"
+  furry f (EitherRight e)=
+    case e of
+      Left a  -> EitherRight (Left a)
+      Right b -> EitherRight (Right $ f b)
 
 class Misty m where
   banana :: (a -> m b) -> m a -> m b
@@ -38,47 +53,63 @@ class Misty m where
   -- Relative Difficulty: 3
   -- (use banana and/or unicorn)
   furry' :: (a -> b) -> m a -> m b
-  furry' = error "todo"
+  furry' f ma = banana (\a -> unicorn $ f a) ma
 
 -- Exercise 7
 -- Relative Difficulty: 2
 instance Misty [] where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana :: (a -> [b]) -> [a] -> [b]
+  banana f l =
+    case l of
+      []     -> []
+      (a:as) -> f a <> banana f as
+
+  unicorn :: a -> [a]
+  unicorn a = [a]
 
 -- Exercise 8
 -- Relative Difficulty: 2
 instance Misty Maybe where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana :: (a -> Maybe b) -> Maybe a -> Maybe b
+  banana f ma =
+    case ma of
+      Nothing -> Nothing
+      Just a  -> f a
+  unicorn = Just
 
 -- Exercise 9
 -- Relative Difficulty: 6
 instance Misty ((->) t) where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana f fa = (\a -> let t = fa a in f t a)
+  unicorn a = \_ -> a
 
 -- Exercise 10
 -- Relative Difficulty: 6
 instance Misty (EitherLeft t) where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana f (EitherLeft el) =
+    case el of
+      Left a -> f a
+      Right b -> (EitherLeft $ Right b)
+  unicorn a = EitherLeft (Left a)
 
 -- Exercise 11
 -- Relative Difficulty: 6
 instance Misty (EitherRight t) where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana f (EitherRight el) =
+    case el of
+      Left a -> (EitherRight $ Left a)
+      Right b -> f b
+  unicorn a = EitherRight (Right a)
 
 -- Exercise 12
 -- Relative Difficulty: 3
 jellybean :: (Misty m) => m (m a) -> m a
-jellybean = error "todo"
+jellybean = banana id
 
 -- Exercise 13
 -- Relative Difficulty: 6
 apple :: (Misty m) => m a -> m (a -> b) -> m b
-apple = error "todo"
+apple ma f = undefined
 
 -- Exercise 14
 -- Relative Difficulty: 6

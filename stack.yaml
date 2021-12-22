@@ -4,3 +4,7 @@ packages:
 - .
 extra-deps:
  - Cabal-2.4.1.0@sha256:56c858cf85e8756a94aaf930f2be4c2eaee623f067e7c55394194d3741147ab7,21825
+
+# nix:
+#   pure: false
+#   packages : [zlib]
