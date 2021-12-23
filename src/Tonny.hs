@@ -109,36 +109,45 @@ jellybean = banana id
 -- Exercise 13
 -- Relative Difficulty: 6
 apple :: (Misty m) => m a -> m (a -> b) -> m b
-apple ma f = undefined
+apple ma f = banana (\ab -> furry' ab ma) f
 
 -- Exercise 14
 -- Relative Difficulty: 6
 moppy :: (Misty m) => [a] -> (a -> m b) -> m [b]
-moppy = error "todo"
+moppy as f =
+  foldr (\a mbs ->
+           banana
+             (\b ->
+                 (banana (\bs -> unicorn (b : bs)) mbs)
+             ) (f a)
+        ) (unicorn []) as
 
 -- Exercise 15
 -- Relative Difficulty: 6
 -- (bonus: use moppy)
 sausage :: (Misty m) => [m a] -> m [a]
-sausage = error "todo"
+sausage as = moppy as id
 
 -- Exercise 16
 -- Relative Difficulty: 6
 -- (bonus: use apple + furry')
 banana2 :: (Misty m) => (a -> b -> c) -> m a -> m b -> m c
-banana2 = error "todo"
+banana2 f ma mb = apple mb (furry' f ma)
+  -- apple mb (apple ma (unicorn f))
+  -- jellybean $ furry' (\a -> furry' (\b -> f a b ) mb ) ma
 
 -- Exercise 17
 -- Relative Difficulty: 6
 -- (bonus: use apple + banana2)
 banana3 :: (Misty m) => (a -> b -> c -> d) -> m a -> m b -> m c -> m d
-banana3 = error "todo"
+banana3 f ma mb mc = apple mc (banana2 f ma mb)
+  -- jellybean $ furry' (\f' -> banana2 f' mb mc) (apple ma (unicorn f))
 
 -- Exercise 18
 -- Relative Difficulty: 6
 -- (bonus: use apple + banana3)
 banana4 :: (Misty m) => (a -> b -> c -> d -> e) -> m a -> m b -> m c -> m d -> m e
-banana4 = error "todo"
+banana4 f ma mb mc md = apple md (banana3 f ma mb mc)
 
 newtype State s a = State {
   state :: (s -> (s, a))
@@ -147,10 +156,22 @@ newtype State s a = State {
 -- Exercise 19
 -- Relative Difficulty: 9
 instance Fluffy (State s) where
-  furry = error "todo"
+  -- furry :: (a -> b) -> State s a -> State s b
+  furry f sf =
+    State (\s ->
+               let (s', a) = state sf s
+               in (s', f a)
+            )
 
 -- Exercise 20
 -- Relative Difficulty: 10
 instance Misty (State s) where
-  banana = error "todo"
-  unicorn = error "todo"
+  banana :: (a -> State s b) -> State s a -> State s b
+  banana f st =
+    State
+      (\s ->
+         let (s', a) = state st s
+         in state (f a) s'
+      )
+  unicorn :: a -> State s a
+  unicorn a = State (\s -> (s, a))
