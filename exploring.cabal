@@ -47,6 +47,7 @@ library
                      , singletons
                      , http-client
                      , rio
+                     , unliftio
 
   hs-source-dirs:      src
   ghc-options: -Wall

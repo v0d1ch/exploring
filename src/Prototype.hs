@@ -6,8 +6,9 @@
 
 module Prototype where
 
-import           Control.Concurrent.STM (STM (..), TChan (..), newTChan)
-import           Control.Monad.ST
+import           Control.Concurrent.STM        (atomically)
+import           UnliftIO.Async
+import           Control.Concurrent.STM.TQueue
 
 data Process c where
   Stop    :: Process c
@@ -38,10 +39,21 @@ data Process c where
 -- Task 1. Write a function run that runs a given process according to the semantics described above.
 -- Your run function may require that the given process uses a particular channel type.
 
-run :: Process a -> Process a
+run :: Process TQueue -> IO (Process TQueue)
 run p =
   case p of
-    Stop -> p
-    NewChan f -> f p
-
--- run (Send chan val cont) = undefined --let x = chan <> val  in _a
+    Stop -> return p
+    Send ch v pr -> atomically $ do
+      writeTQueue ch v
+      return pr
+    Receive ch f -> atomically $ do
+       a <- readTQueue ch
+       return $ f a
+    NewChan f -> atomically $ do
+      ch <- newTQueue
+      return $ f ch
+    (:|:) p1 p2 -> do
+     ea <- race (run p1) (run p2)
+     case ea of
+       Left p1' -> return p1'
+       Right p2' -> return p2'

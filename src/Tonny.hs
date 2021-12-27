@@ -106,6 +106,13 @@ instance Misty (EitherRight t) where
 jellybean :: (Misty m) => m (m a) -> m a
 jellybean = banana id
 
+-- banana :: (a -> m b) -> m a -> m b
+-- [[1]] ~ a
+--
+-- banana :: ([[a]] -> [b]) -> [[a]] -> [b]
+-- banana id [[Int]]
+--
+--
 -- Exercise 13
 -- Relative Difficulty: 6
 apple :: (Misty m) => m a -> m (a -> b) -> m b
