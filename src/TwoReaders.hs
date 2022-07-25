@@ -33,10 +33,6 @@ testClassy = do
   liftIO $ print $ e ^. envOneString
   return ()
 
-mainTwo :: IO ()
-mainTwo = do
- flip R.runReaderT (EnvOne 1 "a") $ flip R.runReaderT (EnvTwo 2 "b") testClassy
-
 testFused :: (Has (Reader EnvOne) sig m, Has (Reader EnvTwo) sig m, MonadIO m) => m ()
 testFused = do
   EnvOne {..} <- ask @EnvOne
